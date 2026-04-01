@@ -1,58 +1,63 @@
 const API_URL = "https://evolution-api-latest-3pb6.onrender.com"; 
-const GLOBAL_ADM_KEY = "vml2026"; 
+const GLOBAL_KEY = "vml2026"; 
+
+// Nossa Cifra de Tradução
+const cifra = {
+    "10": "V", "20": "M", "30": "L", "40": "-", "50": "O", 
+    "60": "f", "70": "i", "80": "c", "90": "a", "00": "l"
+};
+
+function traduzirToken(token) {
+    let resultado = "";
+    for (let i = 0; i < token.length; i += 2) {
+        let par = token.substring(i, i + 2);
+        resultado += cifra[par] || ""; 
+    }
+    return resultado;
+}
 
 async function verificarAcesso() {
-    const instance = document.getElementById('instanceName').value.trim();
+    const token = document.getElementById('tokenInput')?.value || document.getElementById('instanceName')?.value;
     const msg = document.getElementById('mensagem');
     const btn = document.getElementById('btn-login');
 
-    if (!instance) {
-        msg.innerText = ">> Digite a instância!";
+    if (!token) {
+        alert("Digite a Chave!");
         return;
     }
 
-    btn.innerText = "VERIFICANDO...";
-    msg.className = "text-yellow-500 text-center text-[10px]";
+    const instanciaAlvo = traduzirToken(token.trim());
+    console.log("Buscando instância:", instanciaAlvo);
 
     try {
-        // Buscamos todas as instâncias para garantir que não haverá erro de rota específica
+        // Usando a lógica que funcionou no terminal
         const response = await fetch(`${API_URL}/instance/fetchInstances`, {
             method: 'GET',
-            headers: { 
-                'Content-Type': 'application/json',
-                'apikey': GLOBAL_ADM_KEY 
-            }
+            headers: { 'apikey': GLOBAL_KEY }
         });
 
         const data = await response.json();
         
-        // A lógica curinga: procuramos em qualquer lugar do JSON pelo nome da instância
+        // Se a API mandar um objeto em vez de array, transformamos em array (Lógica do Node)
         const lista = Array.isArray(data) ? data : (data.instances || [data]);
-        const encontrou = lista.find(i => 
-            (i.instanceName === instance) || 
-            (i.name === instance) || 
-            (i.instance?.instanceName === instance)
-        );
+
+        // Busca profunda: olha o nome em qualquer nível do objeto
+        const encontrou = lista.find(i => {
+            const nomeObj = i.instanceName || i.name || (i.instance && i.instance.instanceName);
+            return nomeObj === instanciaAlvo;
+        });
 
         if (encontrou) {
-            msg.innerText = ">> ACESSO LIBERADO!";
-            msg.className = "text-green-500 text-center text-[10px]";
-            
             sessionStorage.setItem('logado', 'true');
-            sessionStorage.setItem('instancia_ativa', instance);
-
-            setTimeout(() => {
-                window.location.href = "index.html"; 
-            }, 1000);
+            sessionStorage.setItem('instancia_ativa', instanciaAlvo);
+            window.location.href = "index.html";
         } else {
-            msg.innerText = ">> Instância não encontrada na API.";
-            msg.className = "text-red-500 text-center text-[10px]";
-            btn.innerText = "TENTAR NOVAMENTE";
+            // Se não achou, mostra o que a API devolveu no console para debug
+            console.log("Resposta da API:", data);
+            alert("CHAVE INVÁLIDA: Instância não encontrada no servidor.");
         }
-    } catch (error) {
-        msg.innerText = ">> Erro de comunicação com o Render.";
-        msg.className = "text-red-600 text-center text-[10px]";
-        console.error(error);
-        btn.innerText = "TENTAR NOVAMENTE";
+    } catch (e) {
+        console.error("Erro de conexão:", e);
+        alert("ERRO DE REDE: Verifique se o Render está online.");
     }
 }
