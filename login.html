@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowZap | Autenticação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 font-sans min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-sm">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-black italic tracking-tighter text-green-500 italic">FLOWZAP</h1>
+            <p class="text-zinc-500 text-[10px] uppercase tracking-widest mt-2 font-bold">Sales Intelligence System</p>
+        </header>
+
+        <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl shadow-2xl space-y-6">
+            <div class="flex items-center gap-3 border-b border-zinc-800 pb-4">
+                <i class="fas fa-shield-halved text-green-500"></i>
+                <h2 class="text-lg font-bold">Acesso Restrito</h2>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] text-zinc-500 uppercase mb-2 font-bold italic">Identificador da Instância</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-600">
+                            <i class="fas fa-server text-xs"></i>
+                        </span>
+                        <input type="text" id="instanceName" placeholder="Ex: VML-Oficial" 
+                            class="w-full bg-black border border-zinc-800 p-4 pl-10 rounded-xl focus:border-green-500 outline-none transition-all text-sm font-mono text-green-400">
+                    </div>
+                </div>
+
+                <button onclick="verificarAcesso()" id="btn-login" 
+                    class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-4 rounded-xl transition-all shadow-lg shadow-green-900/40 flex items-center justify-center gap-2 uppercase tracking-widest">
+                    <i class="fas fa-right-to-bracket"></i> Entrar no Painel
+                </button>
+            </div>
+
+            <div id="mensagem" class="text-[10px] text-center font-mono h-4 italic"></div>
+        </div>
+        
+        <footer class="mt-8 text-center">
+            <p class="text-zinc-700 text-[9px] uppercase tracking-widest">Powered by Fenix Group & Parrot OS</p>
+        </footer>
+    </div>
+
+    <script>
+        // Configurações extraídas da sua API no Render
+        const API_URL = "https://evolution-api-latest-3pb6.onrender.com"; 
+        const GLOBAL_ADM_KEY = "vml2026"; 
+
+        async function verificarAcesso() {
+            const instance = document.getElementById('instanceName').value;
+            const msg = document.getElementById('mensagem');
+            const btn = document.getElementById('btn-login');
+
+            if (!instance) {
+                msg.innerText = ">> ERRO: Digite o nome da instância.";
+                msg.className = "text-red-500 text-center text-[10px]";
+                return;
+            }
+
+            // Interface em modo de espera
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch animate-spin"></i> VALIDANDO...';
+            msg.innerText = ">> Consultando Evolution API...";
+            msg.className = "text-yellow-500 text-center text-[10px]";
+
+            // Timer de 40 segundos para lidar com o "Cold Start" do Render
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 40000);
+
+            try {
+                // Chamada para verificar se a instância existe usando sua chave ADM
+                const response = await fetch(`${API_URL}/instance/fetchInstances?instanceName=${instance}`, {
+                    method: 'GET',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'apikey': GLOBAL_ADM_KEY 
+                    },
+                    signal: controller.signal
+                });
+
+                const data = await response.json();
+
+                // Validação lógica: se a instância retornar os dados corretamente
+                if (response.ok && data && data.instance && data.instance.instanceName === instance) {
+                    msg.innerText = ">> ACESSO CONCEDIDO! REDIRECIONANDO...";
+                    msg.className = "text-green-500 text-center text-[10px]";
+                    
+                    // Salva a sessão localmente para autorizar o index.html
+                    sessionStorage.setItem('logado', 'true');
+                    sessionStorage.setItem('instancia_ativa', instance);
+
+                    setTimeout(() => {
+                        window.location.href = "index.html"; 
+                    }, 1200);
+                } else {
+                    throw new Error("Instância inexistente");
+                }
+            } catch (error) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-right-to-bracket"></i> TENTAR NOVAMENTE';
+                
+                if (error.name === 'AbortError') {
+                    msg.innerText = ">> TIMEOUT: Render demorou a responder.";
+                } else {
+                    msg.innerText = ">> ACESSO NEGADO: Instância inválida.";
+                }
+                msg.className = "text-red-500 text-center text-[10px]";
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+    </script>
+</body>
+</html>
