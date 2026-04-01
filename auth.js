@@ -7,14 +7,15 @@ async function verificarAcesso() {
     const btn = document.getElementById('btn-login');
 
     if (!instance) {
-        msg.innerText = ">> Digite o nome da instância!";
+        msg.innerText = ">> Digite a instância!";
         return;
     }
 
     btn.innerText = "VERIFICANDO...";
+    msg.className = "text-yellow-500 text-center text-[10px]";
 
     try {
-        // Buscamos todas as instâncias usando sua chave de ADM
+        // Buscamos todas as instâncias para garantir que não haverá erro de rota específica
         const response = await fetch(`${API_URL}/instance/fetchInstances`, {
             method: 'GET',
             headers: { 
@@ -25,25 +26,33 @@ async function verificarAcesso() {
 
         const data = await response.json();
         
-        // Verificamos se a instância digitada está na lista (data pode ser Array ou Objeto)
-        const lista = Array.isArray(data) ? data : [data];
-        const encontrou = lista.find(i => i.instanceName === instance || i.name === instance);
+        // A lógica curinga: procuramos em qualquer lugar do JSON pelo nome da instância
+        const lista = Array.isArray(data) ? data : (data.instances || [data]);
+        const encontrou = lista.find(i => 
+            (i.instanceName === instance) || 
+            (i.name === instance) || 
+            (i.instance?.instanceName === instance)
+        );
 
         if (encontrou) {
             msg.innerText = ">> ACESSO LIBERADO!";
+            msg.className = "text-green-500 text-center text-[10px]";
+            
             sessionStorage.setItem('logado', 'true');
             sessionStorage.setItem('instancia_ativa', instance);
-            
+
             setTimeout(() => {
-                window.location.href = "index.html";
+                window.location.href = "index.html"; 
             }, 1000);
         } else {
-            msg.innerText = ">> Instância não encontrada na sua API.";
+            msg.innerText = ">> Instância não encontrada na API.";
+            msg.className = "text-red-500 text-center text-[10px]";
             btn.innerText = "TENTAR NOVAMENTE";
         }
     } catch (error) {
-        msg.innerText = ">> Erro de Conexão. Verifique o console.";
-        console.error("Erro detalhado:", error);
+        msg.innerText = ">> Erro de comunicação com o Render.";
+        msg.className = "text-red-600 text-center text-[10px]";
+        console.error(error);
         btn.innerText = "TENTAR NOVAMENTE";
     }
 }

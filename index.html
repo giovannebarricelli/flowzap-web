@@ -2,73 +2,84 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FlowZap | Painel de Disparo</title>
+    <title>FlowZap | Disparador</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-zinc-950 text-zinc-100 font-sans selection:bg-green-500 selection:text-black">
+<body class="bg-zinc-950 text-zinc-100 font-sans">
 
     <div class="max-w-4xl mx-auto p-6">
         <header class="flex justify-between items-center py-6 border-b border-zinc-800 mb-8">
             <h1 class="text-2xl font-black italic text-green-500">FLOWZAP</h1>
-            <div class="flex items-center gap-4 text-right">
-                <div>
-                    <p class="text-[10px] text-zinc-500 uppercase">Instância Ativa</p>
-                    <span id="display-instancia" class="text-xs text-green-400 font-mono">---</span>
-                </div>
-                <button onclick="logout()" class="text-zinc-600 hover:text-red-500 transition-all">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
+            <div class="text-right">
+                <p class="text-[10px] text-zinc-500 uppercase">Instância Ativa</p>
+                <span id="label-instancia" class="text-xs text-green-400 font-mono">Carregando...</span>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="md:col-span-2 space-y-6">
-                <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-6 shadow-2xl">
-                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                        <i class="fas fa-paper-plane text-green-500"></i> Disparador em Massa
-                    </h2>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-[10px] text-zinc-500 mb-2 uppercase font-bold">Números (Um por linha com DDD)</label>
-                            <textarea id="numeros" rows="5" placeholder="5564999999999" 
-                                class="w-full bg-black border border-zinc-800 p-3 rounded-xl focus:border-green-500 outline-none text-sm font-mono"></textarea>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-[10px] text-zinc-500 mb-2 uppercase font-bold">Mensagem</label>
-                            <textarea id="mensagem_texto" rows="4" placeholder="Olá! Tenho uma oferta para você..." 
-                                class="w-full bg-black border border-zinc-800 p-3 rounded-xl focus:border-green-500 outline-none text-sm"></textarea>
-                        </div>
-                        
-                        <button onclick="iniciarDisparo()" id="btn-disparo" class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-4 rounded-xl transition-all uppercase tracking-widest">
-                            Iniciar Disparo Individual
-                        </button>
-                    </div>
+        <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-8 shadow-2xl">
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <i class="fas fa-bullhorn text-green-500"></i> Painel de Envios
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <label class="block text-xs text-zinc-500 uppercase font-bold">Lista de Números (Um por linha)</label>
+                    <textarea id="lista_numeros" rows="8" placeholder="5564999999999" 
+                        class="w-full bg-black border border-zinc-800 p-4 rounded-xl focus:border-green-500 outline-none font-mono text-sm"></textarea>
+                </div>
+
+                <div class="space-y-4">
+                    <label class="block text-xs text-zinc-500 uppercase font-bold">Mensagem de Vendas</label>
+                    <textarea id="texto_mensagem" rows="8" placeholder="Olá! Confira nossa oferta..." 
+                        class="w-full bg-black border border-zinc-800 p-4 rounded-xl focus:border-green-500 outline-none text-sm"></textarea>
                 </div>
             </div>
 
-            <div class="space-y-6">
-                <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-6 h-full">
-                    <h3 class="text-xs font-black text-zinc-500 uppercase mb-4 tracking-tighter italic">Log de Atividade</h3>
-                    <div id="logs" class="space-y-2 h-[380px] overflow-y-auto font-mono text-[10px]">
-                        <p class="text-zinc-600">> Aguardando comando...</p>
-                    </div>
+            <button onclick="disparar()" id="btn-envio" class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-5 rounded-xl mt-8 transition-all uppercase tracking-widest shadow-lg shadow-green-600/20">
+                Iniciar Disparo em Massa
+            </button>
+            
+            <div id="status-envio" class="mt-6 p-4 bg-black rounded-lg border border-zinc-800 font-mono text-[10px] text-zinc-500 hidden">
                 </div>
-            </div>
         </div>
     </div>
 
-    <script src="disparo.js"></script>
     <script>
-        // Trava de Segurança
-        if (sessionStorage.getItem('logado') !== 'true') { window.location.href = "login.html"; }
-        document.getElementById('display-instancia').innerText = sessionStorage.getItem('instancia_ativa');
-        
-        function logout() {
-            sessionStorage.clear();
-            window.location.href = "login.html";
+        // Trava de segurança: se não logou, volta pro login
+        if (sessionStorage.getItem('logado') !== 'true') { window.location.href = 'login.html'; }
+        document.getElementById('label-instancia').innerText = sessionStorage.getItem('instancia_ativa');
+
+        async function disparar() {
+            const numeros = document.getElementById('lista_numeros').value.split('\n').filter(n => n.trim() !== "");
+            const mensagem = document.getElementById('texto_mensagem').value;
+            const log = document.getElementById('status-envio');
+            const instancia = sessionStorage.getItem('instancia_ativa');
+
+            if (numeros.length === 0 || !mensagem) return alert("Preencha os números e a mensagem!");
+
+            log.classList.remove('hidden');
+            log.innerHTML = `<p class="text-green-500">> Iniciando disparos para ${numeros.length} contatos...</p>`;
+
+            for (let num of numeros) {
+                const p = document.createElement('p');
+                p.innerText = `> Enviando para ${num.trim()}...`;
+                log.appendChild(p);
+
+                try {
+                    const res = await fetch(`https://evolution-api-latest-3pb6.onrender.com/message/sendText/${instancia}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'apikey': 'vml2026' },
+                        body: JSON.stringify({ number: num.trim(), text: mensagem })
+                    });
+                    
+                    if (res.ok) { p.innerHTML += ` <span class="text-green-400">[SUCESSO]</span>`; }
+                    else { p.innerHTML += ` <span class="text-red-500">[FALHA]</span>`; }
+                } catch (e) { p.innerHTML += ` <span class="text-red-700">[ERRO DE CONEXÃO]</span>`; }
+
+                // Delay de 3 segundos para evitar ban
+                await new Promise(resolve => setTimeout(resolve, 3000));
+            }
         }
     </script>
 </body>
