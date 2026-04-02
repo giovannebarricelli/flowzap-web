@@ -5,55 +5,43 @@
     <title>FlowZap | Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-white flex items-center justify-center h-screen">
-    <div class="bg-zinc-900 p-10 rounded-3xl border border-zinc-800 w-full max-w-sm shadow-2xl">
+<body class="bg-black text-white flex items-center justify-center h-screen font-sans">
+    <div class="bg-zinc-900 p-10 rounded-[40px] border border-zinc-800 w-full max-w-sm shadow-2xl">
         <h1 class="text-4xl font-black italic text-green-500 text-center mb-10 tracking-tighter">FLOWZAP</h1>
-        
         <div class="space-y-4">
-            <input type="text" id="tokenInput" placeholder="Chave de Acesso Numérica" 
-                class="w-full bg-black border border-zinc-800 p-4 rounded-2xl text-center text-green-400 font-mono focus:border-green-500 outline-none">
-            
-            <button onclick="autenticar()" id="btn" class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-4 rounded-2xl uppercase tracking-widest transition-all">
-                Acessar Sistema
+            <input type="text" id="tokenInput" placeholder="Digite seu Token" 
+                class="w-full bg-black border border-zinc-800 p-5 rounded-2xl text-center text-green-400 font-mono outline-none focus:border-green-500 transition-all">
+            <button onclick="autenticar()" id="btn" class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-5 rounded-2xl uppercase tracking-widest transition-all shadow-lg shadow-green-900/20">
+                Acessar Painel
             </button>
-            
-            <p id="msg" class="text-[10px] text-center text-zinc-600 uppercase font-bold min-h-[15px]"></p>
+            <p id="msg" class="text-[10px] text-center text-zinc-500 uppercase font-bold min-h-[15px] tracking-widest"></p>
         </div>
     </div>
-
     <script>
         async function autenticar() {
             const token = document.getElementById('tokenInput').value;
             const msg = document.getElementById('msg');
             const btn = document.getElementById('btn');
-
-            if(!token) return alert("Por favor, digite sua chave numérica.");
-
-            msg.innerText = "Validando chave no servidor seguro...";
+            if(!token) return alert("Digite o token!");
+            msg.innerText = "Conectando ao cérebro...";
             btn.disabled = true;
-
             try {
-                // Conectando diretamente ao seu backend que já está LIVE no Render
                 const res = await fetch('https://flowzap-backend.onrender.com/verificar', { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token })
                 });
-
                 const data = await res.json();
-
                 if (data.liberado) {
-                    sessionStorage.setItem('logado', 'true');
                     sessionStorage.setItem('instancia_ativa', data.instance);
                     window.location.href = "index.html";
                 } else {
-                    msg.innerText = "CHAVE INVÁLIDA: Instância não encontrada.";
+                    msg.innerText = "TOKEN INVÁLIDO";
                     btn.disabled = false;
                 }
             } catch (e) {
-                msg.innerText = "ERRO: O servidor backend está offline.";
+                msg.innerText = "ERRO DE CONEXÃO";
                 btn.disabled = false;
-                console.error("Erro de conexão:", e);
             }
         }
     </script>
