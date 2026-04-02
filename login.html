@@ -27,16 +27,14 @@
             const msg = document.getElementById('msg');
             const btn = document.getElementById('btn');
 
-            if(!token) return alert("Digite a chave!");
+            if(!token) return alert("Por favor, digite sua chave numérica.");
 
-            msg.innerText = "Validando chave segura...";
+            msg.innerText = "Validando chave no servidor seguro...";
             btn.disabled = true;
 
             try {
-                // APÓS O DEPLOY, SUBSTITUA A URL ABAIXO PELA URL DO BACKEND NO RENDER
-                const URL_BACKEND = "https://flowzap-backend.onrender.com"; 
-
-                const res = await fetch(`${URL_BACKEND}/verificar`, {
+                // Conectando diretamente ao seu backend que já está LIVE no Render
+                const res = await fetch('https://flowzap-backend.onrender.com/verificar', { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token })
@@ -49,12 +47,13 @@
                     sessionStorage.setItem('instancia_ativa', data.instance);
                     window.location.href = "index.html";
                 } else {
-                    msg.innerText = "ACESSO NEGADO: CHAVE INVÁLIDA";
+                    msg.innerText = "CHAVE INVÁLIDA: Instância não encontrada.";
                     btn.disabled = false;
                 }
             } catch (e) {
-                msg.innerText = "ERRO: SERVIDOR OFFLINE";
+                msg.innerText = "ERRO: O servidor backend está offline.";
                 btn.disabled = false;
+                console.error("Erro de conexão:", e);
             }
         }
     </script>
