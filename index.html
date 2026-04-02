@@ -2,153 +2,85 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FlowZap | Painel de Controle</title>
+    <title>FlowZap | Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-zinc-950 text-zinc-100 font-sans min-h-screen">
-
-    <div class="max-w-5xl mx-auto p-6">
-        <header class="flex justify-between items-center py-8 border-b border-zinc-900 mb-10">
-            <div>
-                <h1 class="text-3xl font-black italic text-green-500 tracking-tighter">FLOWZAP</h1>
-                <p id="alerta-status" class="text-[10px] text-zinc-600 uppercase font-bold mt-1">Sessão Segura Ativa</p>
-            </div>
-            <div class="bg-zinc-900 border border-zinc-800 px-6 py-3 rounded-2xl text-right">
-                <p class="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Operador</p>
-                <span id="label-instancia" class="text-xs text-green-400 font-mono font-bold">Carregando...</span>
+<body class="bg-black text-white p-8">
+    <div class="max-w-5xl mx-auto">
+        <header class="flex justify-between items-center mb-10 border-b border-zinc-900 pb-6">
+            <h1 class="text-3xl font-black italic text-green-500 tracking-tighter">FLOWZAP</h1>
+            <div class="text-right">
+                <p class="text-[9px] text-zinc-500 uppercase font-black">Instância Ativa</p>
+                <p id="inst-display" class="text-green-400 font-mono text-xs font-bold"></p>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-zinc-900 rounded-3xl border border-zinc-800 p-8 shadow-2xl">
-                    <div class="flex items-center justify-between mb-8">
-                        <h2 class="text-xl font-bold flex items-center gap-3">
-                            <i class="fas fa-rocket text-green-500"></i> Disparador em Massa
-                        </h2>
-                        <div id="progresso-msg" class="hidden text-[10px] bg-green-950 text-green-400 px-3 py-1 rounded-full font-bold uppercase animate-pulse">
-                            Enviando...
-                        </div>
-                    </div>
-
-                    <div class="space-y-6">
-                        <div id="progresso-container" class="hidden space-y-3">
-                            <div class="flex justify-between text-[10px] uppercase font-black text-zinc-500">
-                                <span>Progresso da Campanha</span>
-                                <span id="porcentagem">0%</span>
-                            </div>
-                            <div class="w-full bg-black h-3 rounded-full overflow-hidden border border-zinc-800 shadow-inner">
-                                <div id="barra" class="bg-green-500 h-full w-0 transition-all duration-700 shadow-[0_0_15px_rgba(34,197,94,0.4)]"></div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-2">
-                                <label class="block text-[10px] text-zinc-500 uppercase font-black ml-2">Lista de Contatos</label>
-                                <textarea id="lista_numeros" rows="12" placeholder="5564999999999" 
-                                    class="w-full bg-black border border-zinc-800 p-5 rounded-2xl focus:border-green-500 outline-none font-mono text-sm transition-all"></textarea>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="block text-[10px] text-zinc-500 uppercase font-black ml-2">Script de Venda</label>
-                                <textarea id="texto_mensagem" rows="12" placeholder="Olá! Tenho uma oferta..." 
-                                    class="w-full bg-black border border-zinc-800 p-5 rounded-2xl focus:border-green-500 outline-none text-sm transition-all"></textarea>
-                            </div>
-                        </div>
-
-                        <button onclick="iniciarDisparo()" id="btn-disparar" class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-5 rounded-2xl mt-4 transition-all uppercase tracking-[0.2em] shadow-xl shadow-green-900/20 flex items-center justify-center gap-3">
-                            <i class="fas fa-play"></i> Iniciar Campanha
-                        </button>
-                    </div>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-2">
+                <label class="text-[10px] text-zinc-500 uppercase font-black ml-2">Lista de Contatos</label>
+                <textarea id="numeros" rows="12" placeholder="5564999999999" class="w-full bg-zinc-900 border border-zinc-800 p-5 rounded-3xl outline-none focus:border-green-500 font-mono text-sm"></textarea>
             </div>
-
-            <div class="space-y-6">
-                <div class="bg-zinc-900 rounded-3xl border border-zinc-800 p-6 h-full min-h-[400px]">
-                    <h3 class="text-[10px] font-black text-zinc-500 uppercase mb-6 tracking-widest italic border-b border-zinc-800 pb-3">Monitor de Tráfego</h3>
-                    <div id="logs" class="space-y-3 font-mono text-[10px] text-zinc-500 overflow-y-auto max-h-[500px]">
-                        <p class="italic">> Sistema pronto para disparos.</p>
-                    </div>
-                </div>
+            <div class="space-y-2">
+                <label class="text-[10px] text-zinc-500 uppercase font-black ml-2">Mensagem (Script de Venda)</label>
+                <textarea id="texto" rows="12" placeholder="Olá!..." class="w-full bg-zinc-900 border border-zinc-800 p-5 rounded-3xl outline-none focus:border-green-500 text-sm"></textarea>
             </div>
+        </div>
+
+        <button onclick="iniciar()" id="btn-envio" class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-6 rounded-3xl mt-8 uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3">
+            <i class="fas fa-rocket"></i> Iniciar Disparos em Massa
+        </button>
+
+        <div id="logs" class="mt-10 bg-zinc-900/50 border border-zinc-900 rounded-3xl p-6 h-48 overflow-y-auto font-mono text-[10px] text-zinc-600">
+            <p>> Sistema pronto para operação.</p>
         </div>
     </div>
 
     <script>
-        // Trava de Segurança e Inicialização
-        const INSTANCIA = sessionStorage.getItem('instancia_ativa');
-        const LOGADO = sessionStorage.getItem('logado');
+        const inst = sessionStorage.getItem('instancia_ativa');
+        if(!inst) window.location.href = 'login.html';
+        document.getElementById('inst-display').innerText = inst;
 
-        if (LOGADO !== 'true' || !INSTANCIA) { window.location.href = 'login.html'; }
-        document.getElementById('label-instancia').innerText = INSTANCIA;
-
-        let enviando = false;
-
-        // Impedir fechamento da aba
-        window.onbeforeunload = function() {
-            if (enviando) return "A campanha será interrompida se você sair!";
-        };
-
-        async function iniciarDisparo() {
-            const numeros = document.getElementById('lista_numeros').value.split('\n').filter(n => n.trim() !== "");
-            const msgTexto = document.getElementById('texto_mensagem').value;
-            const btn = document.getElementById('btn-disparar');
+        async function iniciar() {
+            const numeros = document.getElementById('numeros').value.split('\n').filter(n => n.trim() !== "");
+            const texto = document.getElementById('texto').value;
+            const btn = document.getElementById('btn-envio');
             const logs = document.getElementById('logs');
-            const barra = document.getElementById('barra');
-            const porcentagem = document.getElementById('porcentagem');
 
-            if (numeros.length === 0 || !msgTexto) return alert("Preencha os dados da campanha!");
+            if(numeros.length === 0 || !texto) return alert("Preencha todos os campos!");
 
-            enviando = true;
             btn.disabled = true;
-            btn.classList.replace('bg-green-600', 'bg-zinc-800');
-            btn.innerHTML = '<i class="fas fa-circle-notch animate-spin"></i> PROCESSANDO LOTE...';
-            document.getElementById('progresso-container').classList.remove('hidden');
-            document.getElementById('progresso-msg').classList.remove('hidden');
+            btn.innerHTML = '<i class="fas fa-circle-notch animate-spin"></i> DISPARANDO...';
 
-            let sucessos = 0;
-
-            for (let i = 0; i < numeros.length; i++) {
-                const num = numeros[i].trim();
-                const logItem = document.createElement('p');
-                logItem.innerText = `> Tentando: ${num}`;
-                logs.prepend(logItem);
+            for(let n of numeros) {
+                const log = document.createElement('p');
+                log.innerText = `> Tentando enviar para ${n.trim()}...`;
+                logs.prepend(log);
 
                 try {
-                    const res = await fetch(`https://evolution-api-latest-3pb6.onrender.com/message/sendText/${INSTANCIA}`, {
+                    const res = await fetch(`https://evolution-api-latest-3pb6.onrender.com/message/sendText/${inst}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'apikey': 'vml2026' },
-                        body: JSON.stringify({ "number": num, "text": msgTexto })
+                        body: JSON.stringify({ "number": n.trim(), "text": texto })
                     });
-
-                    if (res.ok) {
-                        sucessos++;
-                        logItem.innerText = `> [OK] ${num} enviado.`;
-                        logItem.className = "text-green-500 font-bold";
+                    
+                    if(res.ok) {
+                        log.innerText += " SUCESSO!";
+                        log.classList.add('text-green-500');
                     } else {
-                        logItem.innerText = `> [ERRO] ${num} falhou.`;
-                        logItem.className = "text-red-500";
+                        log.innerText += " FALHA.";
+                        log.classList.add('text-red-500');
                     }
-                } catch (e) {
-                    logItem.innerText = `> [FALHA] Erro de rede em ${num}`;
-                    logItem.className = "text-red-700";
+                } catch(e) {
+                    log.innerText += " ERRO DE REDE.";
                 }
 
-                // Atualiza Barra
-                let p = Math.round(((i + 1) / numeros.length) * 100);
-                barra.style.width = `${p}%`;
-                porcentagem.innerText = `${p}%`;
-
-                // Delay de 4 segundos (Anti-Ban)
-                await new Promise(r => setTimeout(r, 4000));
+                await new Promise(r => setTimeout(r, 4000)); // Delay Anti-Ban
             }
 
-            enviando = false;
             btn.disabled = false;
-            btn.classList.replace('bg-zinc-800', 'bg-green-600');
-            btn.innerHTML = '<i class="fas fa-play"></i> Iniciar Campanha';
-            document.getElementById('progresso-msg').classList.add('hidden');
-            alert(`Campanha finalizada! ${sucessos} mensagens enviadas.`);
+            btn.innerHTML = '<i class="fas fa-rocket"></i> Iniciar Disparos em Massa';
+            alert("Campanha finalizada!");
         }
     </script>
 </body>
